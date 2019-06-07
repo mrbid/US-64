@@ -109,7 +109,6 @@ function check_ustor($idfa)
 #include <stdlib.h> //atoi()
 #include <time.h> //time()
 #include <signal.h> //SIGPIPE
-#include <netdb.h> //hostent
 #include <sys/sysinfo.h> //CPU cores
 #include <pthread.h> //Threading
 #include <unistd.h> //Sleep
@@ -155,7 +154,6 @@ void timestamp()
 . ~ Unique Capping Code
 */
 
-//Impressions are split into site domain buckets
 struct site //8 bytes, no padding.
 {
     unsigned short idfa_high;
@@ -186,7 +184,7 @@ void init_sites()
     }
 }
 
-//Check against all idfa in memory for a match, if it's not there, add it,
+//Check against all idfa in memory for a match
 int has_idfa(const uint64_t idfa) //Pub
 {
     //Find site index
@@ -203,7 +201,7 @@ int has_idfa(const uint64_t idfa) //Pub
         //fprintf(stderr, "%i: reached it's expirary after %u hours.\n", cid_index, ((time(0) - campaigns[cid_index].sites[site_index].last_epoch) / 60) / 60 );
     }
 
-    //Set the ranges
+    //Check the ranges
     unsigned short idfar = (idfa % (sizeof(unsigned short)-1))+1;
     if(idfar >= sites[site_index].idfa_low && idfar <= sites[site_index].idfa_high)
     {
@@ -214,11 +212,11 @@ int has_idfa(const uint64_t idfa) //Pub
     //Stats
     allowed++;
 
-    //add_idfa_priv(site_index, idfa); //No idfa? Add it
-    return 0; //NO IFDA :(
+    //NO IFDA
+    return 0;
 }
 
-//Set's ifa,
+//Set's idfa,
 void add_idfa(const uint64_t idfa, const uint expire_seconds) //Pub
 {
     //Find site index
@@ -413,7 +411,7 @@ void *readThread(void *arg)
     return 0;
 }
 
-//Main process for writing (you could also read, but there's no point unless your going single threaded)
+//This main process is reserved for writing, but capable of reading.
 int main(int argc , char *argv[])
 {
     //Init memory for unique filtering
